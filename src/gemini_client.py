@@ -112,6 +112,7 @@ def _ranked_relevant_sentences(question: str, sentences: list[str]) -> list[str]
         return []
 
     ranked = []
+    strong_matches = []
     for position, sentence in enumerate(sentences):
         clean_sentence = re.sub(r"\[[^\]]+\]\s*", "", sentence).strip()
         sentence_lower = clean_sentence.lower()
@@ -125,8 +126,11 @@ def _ranked_relevant_sentences(question: str, sentences: list[str]) -> list[str]
             score += 8
         if all(term in sentence_lower for term in terms):
             score += 12
+            strong_matches.append((score, position, clean_sentence))
         ranked.append((score, position, clean_sentence))
 
+    if strong_matches:
+        ranked = strong_matches
     ranked.sort(key=lambda item: (-item[0], item[1]))
     return [sentence for _, _, sentence in ranked]
 
@@ -348,9 +352,10 @@ def _local_text_response(prompt: str) -> str:
         return "I couldn't find that information in the uploaded document."
     question_lower = question_text.lower()
     is_definition_question = bool(re.match(r"\s*(what|who)\s+(is|are)\b", question_lower))
+    is_topic_question = question_lower.rstrip().endswith("?") and not is_definition_question
     if "best practice" in question_lower:
         relevant = [sentence for sentence in relevant if "best practice" in sentence.lower()]
-    answer = " ".join(relevant[:1] if is_definition_question else relevant[:3]).strip()
+    answer = " ".join(relevant[:1] if is_definition_question or is_topic_question else relevant[:3]).strip()
     return f"Gemini is unavailable, so here is the closest answer from your notes:\n\n{answer}"
 
 

@@ -91,6 +91,19 @@ def test_best_practices_question_excludes_generic_accessibility_noise(monkeypatc
     assert "government services" not in result
 
 
+def test_topic_question_prefers_exact_multiword_section(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\n[UNIT 4.pdf - p.1] For government services, accessibility is a commitment to inclusivity. "
+        "Inclusive Service Delivery means designing public services so all citizens can access them.\n\n"
+        "Question: Inclusive Service Delivery?"
+    )
+
+    assert "Inclusive Service Delivery" in result
+    assert "government services" not in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 
