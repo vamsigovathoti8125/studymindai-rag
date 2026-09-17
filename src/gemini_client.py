@@ -179,6 +179,8 @@ def expand_project_documents(question: str, docs: list[dict], retrieved: list[di
 
     expanded = list(retrieved)
     seen = {(doc.get("source"), doc.get("page"), doc.get("text", "").strip()) for doc in expanded}
+    matched_sources = set()
+    matched_pages = []
     for doc in docs:
         normalized_text = re.sub(r"[^a-z0-9]", "", doc.get("text", "").lower())
         text_words = re.findall(r"[a-z0-9]+", doc.get("text", "").lower())
@@ -209,6 +211,8 @@ def expand_resume_documents(question: str, docs: list[dict], retrieved: list[dic
         return retrieved
     expanded = list(retrieved)
     seen = {(doc.get("source"), doc.get("page"), doc.get("text", "").strip()) for doc in expanded}
+    matched_sources = set()
+    matched_pages = []
     for doc in docs:
         if doc.get("source") in sources:
             key = (doc.get("source"), doc.get("page"), doc.get("text", "").strip())
@@ -231,6 +235,8 @@ def expand_topic_documents(question: str, docs: list[dict], retrieved: list[dict
 
     expanded = list(retrieved)
     seen = {(doc.get("source"), doc.get("page"), doc.get("text", "").strip()) for doc in expanded}
+    matched_sources = set()
+    matched_pages = []
     for doc in docs:
         text = doc.get("text", "")
         normalized_text = re.sub(r"[^a-z0-9]", "", text.lower())
@@ -240,11 +246,25 @@ def expand_topic_documents(question: str, docs: list[dict], retrieved: list[dict
             or any(SequenceMatcher(None, term, word).ratio() >= 0.88 for word in text_words if len(word) >= 5)
             for term in terms
         )
-        if matched >= max(2, len(terms) - 1):
+        if matched >= 1:
+            matched_sources.add(doc.get("source"))
+            if isinstance(doc.get("page"), int):
+                matched_pages.append((doc.get("source"), doc.get("page")))
             key = (doc.get("source"), doc.get("page"), text.strip())
             if key not in seen:
                 expanded.append(doc)
                 seen.add(key)
+    for doc in docs:
+        if doc.get("source") not in matched_sources or not isinstance(doc.get("page"), int):
+            continue
+        nearby = any(
+            source == doc.get("source") and abs(page - doc.get("page")) <= 3
+            for source, page in matched_pages
+        )
+        key = (doc.get("source"), doc.get("page"), doc.get("text", "").strip())
+        if nearby and key not in seen:
+            expanded.append(doc)
+            seen.add(key)
     return expanded
 
 

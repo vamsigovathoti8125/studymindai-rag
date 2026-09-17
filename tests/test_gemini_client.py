@@ -144,6 +144,17 @@ def test_topic_expansion_finds_any_document_section():
     assert requested in expanded
 
 
+def test_topic_expansion_includes_related_chunks_with_partial_terms():
+    first = {"text": "Examples of Assistive Technologies", "source": "UNIT 4.pdf", "page": 1}
+    related = {"text": "Screen Readers convert on-screen text into speech or braille for visually impaired users.", "source": "UNIT 4.pdf", "page": 2}
+    another = {"text": "Text-to-Speech software reads digital content aloud.", "source": "UNIT 4.pdf", "page": 3}
+
+    expanded = expand_topic_documents("Examples of Assistive Technologies", [first, related, another], [first])
+
+    assert related in expanded
+    assert another in expanded
+
+
 def test_same_line_heading_keeps_first_explanation(monkeypatch):
     force_offline(monkeypatch)
     result = generate_text(
