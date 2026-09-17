@@ -1,0 +1,10 @@
+streamlit
+Flask
+google-genai
+faiss-cpu
+tiktoken
+pymupdf
+numpy
+python-dotenv
+sentence-transformers
+pytest
