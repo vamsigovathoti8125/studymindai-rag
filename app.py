@@ -11,7 +11,7 @@ from src.tools.quiz_tool import generate_mcqs
 from src.tools.summary_tool import generate_summary
 from src.tools.calculator import calculate
 from src.agent.agent import decide_tool
-from src.gemini_client import CHAT_MODEL, EMBEDDING_MODEL, answer_resume_question, expand_project_documents, expand_resume_documents, extract_candidate_name, generate_text
+from src.gemini_client import CHAT_MODEL, EMBEDDING_MODEL, answer_resume_question, expand_project_documents, expand_resume_documents, expand_topic_documents, extract_candidate_name, generate_text
 
 # --------------------------------------------------
 # PAGE CONFIGURATION
@@ -224,6 +224,7 @@ if question:
             retrieved = [st.session_state.docs[i] for i in ids if i < len(st.session_state.docs)]
             retrieved = expand_project_documents(question, st.session_state.docs, retrieved)
             retrieved = expand_resume_documents(question, st.session_state.docs, retrieved)
+            retrieved = expand_topic_documents(question, st.session_state.docs, retrieved)
             context = format_retrieved_chunks(retrieved)
             try:
                 mcqs = generate_mcqs(context, num_questions=5, model=chat_model)
@@ -239,6 +240,7 @@ if question:
             retrieved = [st.session_state.docs[i] for i in ids if i < len(st.session_state.docs)]
             retrieved = expand_project_documents(question, st.session_state.docs, retrieved)
             retrieved = expand_resume_documents(question, st.session_state.docs, retrieved)
+            retrieved = expand_topic_documents(question, st.session_state.docs, retrieved)
             context = format_retrieved_chunks(retrieved)
             try:
                 summary = generate_summary(context, model=chat_model)
@@ -255,6 +257,7 @@ if question:
             retrieved = [st.session_state.docs[i] for i in ids if i < len(st.session_state.docs)]
             retrieved = expand_project_documents(question, st.session_state.docs, retrieved)
             retrieved = expand_resume_documents(question, st.session_state.docs, retrieved)
+            retrieved = expand_topic_documents(question, st.session_state.docs, retrieved)
             context = format_retrieved_chunks(retrieved)
             prompt = (
                 "You are StudyMind AI. Answer using ONLY the provided context. If insufficient, say so.\n\n"

@@ -22,7 +22,7 @@ try:
     from src.tools.rag_tool import format_retrieved_chunks
     from src.agent.agent import decide_tool
     from src.tools.calculator import calculate
-    from src.gemini_client import answer_resume_question, expand_project_documents, expand_resume_documents, extract_candidate_name, generate_text
+    from src.gemini_client import answer_resume_question, expand_project_documents, expand_resume_documents, expand_topic_documents, extract_candidate_name, generate_text
 except ImportError as e:
     print(f"Error importing modules: {e}")
     print("Make sure all src modules are in the src/ directory")
@@ -460,6 +460,7 @@ def ask_question():
                     retrieved.append(docs[i])
         retrieved = expand_project_documents(question, docs, retrieved)
         retrieved = expand_resume_documents(question, docs, retrieved)
+        retrieved = expand_topic_documents(question, docs, retrieved)
         
         # Decide tool
         tool = decide_tool(question)
