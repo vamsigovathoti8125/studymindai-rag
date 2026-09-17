@@ -346,7 +346,10 @@ def _local_text_response(prompt: str) -> str:
     relevant = _ranked_relevant_sentences(question_text, sentences)
     if not relevant:
         return "I couldn't find that information in the uploaded document."
-    is_definition_question = bool(re.match(r"\s*(what|who)\s+(is|are)\b", question_text.lower()))
+    question_lower = question_text.lower()
+    is_definition_question = bool(re.match(r"\s*(what|who)\s+(is|are)\b", question_lower))
+    if "best practice" in question_lower:
+        relevant = [sentence for sentence in relevant if "best practice" in sentence.lower()]
     answer = " ".join(relevant[:1] if is_definition_question else relevant[:3]).strip()
     return f"Gemini is unavailable, so here is the closest answer from your notes:\n\n{answer}"
 

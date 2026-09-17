@@ -78,6 +78,19 @@ def test_general_definition_prefers_exact_definition_over_noise(monkeypatch):
     assert "Launch with Accessibility Checks" not in result
 
 
+def test_best_practices_question_excludes_generic_accessibility_noise(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\n[UNIT 4.pdf - p.1] Best Practices for Accessibility: Use best practices for visual, auditory, and motor accessibility. "
+        "For government services, accessibility is a commitment to inclusivity.\n\n"
+        "Question: Best Practices for Accessibility?"
+    )
+
+    assert "Use best practices for visual, auditory, and motor accessibility" in result
+    assert "government services" not in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 
