@@ -155,6 +155,17 @@ def test_topic_expansion_includes_related_chunks_with_partial_terms():
     assert another in expanded
 
 
+def test_topic_expansion_does_not_collect_every_document_page():
+    heading = {"text": "Examples of Assistive Technologies", "source": "UNIT 4.pdf", "page": 16}
+    nearby = {"text": "Screen readers convert text into speech or braille.", "source": "UNIT 4.pdf", "page": 18}
+    distant = {"text": "Examples of assistive technologies in an unrelated appendix.", "source": "UNIT 4.pdf", "page": 40}
+
+    expanded = expand_topic_documents("Examples of Assistive Technologies", [heading, nearby, distant], [heading])
+
+    assert nearby in expanded
+    assert distant not in expanded
+
+
 def test_same_line_heading_keeps_first_explanation(monkeypatch):
     force_offline(monkeypatch)
     result = generate_text(

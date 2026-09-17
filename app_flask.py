@@ -486,12 +486,10 @@ def ask_question():
                 answer = generate_text(prompt, max_output_tokens=512)
         
         # Add sources
-        sources = []
-        for d in retrieved:
-            sources.append(f"• {d.get('source')} — p.{d.get('page')}")
+        sources = list(dict.fromkeys(d.get('source') for d in retrieved if d.get('source')))[:3]
         
         if sources:
-            answer = answer + "\n\nSources:\n" + "\n".join(dict.fromkeys(sources))
+            answer = answer + "\n\nSources: " + ", ".join(sources)
         
         return jsonify({'success': True, 'answer': answer})
         

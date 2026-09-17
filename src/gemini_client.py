@@ -254,6 +254,19 @@ def expand_topic_documents(question: str, docs: list[dict], retrieved: list[dict
             if key not in seen:
                 expanded.append(doc)
                 seen.add(key)
+            if matched_pages:
+                break
+    if matched_pages:
+        matched_source, matched_page = matched_pages[0]
+        expanded = [
+            doc for doc in expanded
+            if doc.get("source") != matched_source
+            or not isinstance(doc.get("page"), int)
+            or abs(doc.get("page") - matched_page) <= 3
+        ]
+        seen = {(doc.get("source"), doc.get("page"), doc.get("text", "").strip()) for doc in expanded}
+        matched_sources = {matched_source}
+        matched_pages = [(matched_source, matched_page)]
     for doc in docs:
         if doc.get("source") not in matched_sources or not isinstance(doc.get("page"), int):
             continue
