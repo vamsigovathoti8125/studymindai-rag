@@ -104,6 +104,20 @@ def test_topic_question_prefers_exact_multiword_section(monkeypatch):
     assert "government services" not in result
 
 
+def test_heading_question_returns_following_explanation(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\nDesigning accessible interfaces for users with disabilities\n"
+        "Technology exists to make our lives better and help us get things done efficiently.\n"
+        "Accessible design grants disabled users the same ease of use as the rest of the population.\n\n"
+        "Question: Designing accessible interfaces for users with disabilities"
+    )
+
+    assert "Technology exists to make our lives better" in result
+    assert "Accessible design grants disabled users" in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 

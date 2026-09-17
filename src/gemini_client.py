@@ -99,7 +99,27 @@ def _context_from_prompt(prompt: str) -> str:
 
 
 def _sentences(text: str) -> list[str]:
-    return [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", text) if sentence.strip()]
+    return [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+|\n+", text) if sentence.strip()]
+
+
+def _topic_heading_answer(question: str, sentences: list[str]) -> str | None:
+    question_words = set(re.findall(r"[a-z0-9]+", question.lower()))
+    if len(question_words) < 3:
+        return None
+    for index, sentence in enumerate(sentences):
+        sentence_words = set(re.findall(r"[a-z0-9]+", sentence.lower()))
+        if question_words.issubset(sentence_words) or sentence_words.issubset(question_words):
+            if ":" in sentence:
+                title, inline_answer = sentence.split(":", 1)
+                title_words = set(re.findall(r"[a-z0-9]+", title.lower()))
+                if question_words.intersection(title_words):
+                    inline_answer = inline_answer.strip()
+                    if len(inline_answer) > 35:
+                        return inline_answer
+            follow_up = [part for part in sentences[index + 1:index + 4] if len(part) > 35]
+            if follow_up:
+                return " ".join(follow_up[:2])
+    return None
 
 
 def _ranked_relevant_sentences(question: str, sentences: list[str]) -> list[str]:
@@ -347,6 +367,9 @@ def _local_text_response(prompt: str) -> str:
         return " ".join(sentences[:5])
 
     question_text = question_match.group(1).strip() if question_match else ""
+    topic_answer = _topic_heading_answer(question_text, sentences)
+    if topic_answer:
+        return f"Gemini is unavailable, so here is the closest answer from your notes:\n\n{topic_answer}"
     relevant = _ranked_relevant_sentences(question_text, sentences)
     if not relevant:
         return "I couldn't find that information in the uploaded document."
