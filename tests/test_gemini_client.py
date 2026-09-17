@@ -41,6 +41,30 @@ def test_college_name_question_does_not_return_candidate_name():
     assert "SEELAM DURGA LOVA RAJU" not in result
 
 
+def test_general_study_pdf_is_not_treated_as_resume():
+    context = (
+        "[UNIT 3.pdf - p.1]\nUNIT III USABILITY AND USER TESTING\n"
+        "What is Usability Testing? Usability testing is the process of evaluating a user's experience "
+        "with your website, app, or digital product and determining whether it meets the user's needs."
+    )
+
+    result = answer_resume_question("What is usability testing?", context)
+
+    assert result is None
+
+
+def test_general_document_fallback_answers_from_context(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\n[UNIT 3.pdf - p.1] Usability testing evaluates a user's experience with a website or application.\n\n"
+        "Question: What is usability testing?"
+    )
+
+    assert "evaluates a user's experience" in result
+    assert "couldn't find" not in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 

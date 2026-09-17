@@ -164,7 +164,18 @@ def answer_resume_question(question: str, context: str) -> str | None:
             return f"The candidate's name is {candidate_name}."
 
     education_terms = ("education", "degree", "college", "university", "graduat", "passed", "study", "studied")
-    is_resume = bool(re.search(r"\b(resume|objective|experience|education|skills|intern|github|linkedin)\b", context, re.IGNORECASE))
+    resume_headings = (
+        "career objective",
+        "technical skills",
+        "programming languages",
+        "internships",
+        "projects",
+        "education",
+        "experience",
+    )
+    resume_heading_count = sum(heading in context.lower() for heading in resume_headings)
+    has_resume_filename = bool(re.search(r"\[[^\]]*\b(?:resume|cv)\b[^\]]*\]", context, re.IGNORECASE))
+    is_resume = has_resume_filename or resume_heading_count >= 2
     if is_resume and not any(
         term in lowered_question
         for term in ("experience", "projects", "project", "skills", *education_terms)
@@ -308,7 +319,7 @@ def _local_text_response(prompt: str) -> str:
     )]
     if not relevant:
         return "I couldn't find that information in the uploaded document."
-    answer = " ".join(relevant[:3])
+    answer = re.sub(r"\[[^\]]+\]\s*", "", " ".join(relevant[:3])).strip()
     return f"Gemini is unavailable, so here is the closest answer from your notes:\n\n{answer}"
 
 
