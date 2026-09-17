@@ -80,6 +80,31 @@ HTML_TEMPLATE = '''
             display: flex;
             flex-direction: column;
         }
+
+        .creator-footer {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 12px;
+            padding: 14px 20px;
+            text-align: center;
+            color: #667085;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            font-size: 13px;
+        }
+
+        .creator-footer strong {
+            color: #344054;
+        }
+
+        .creator-footer a {
+            color: #596fe3;
+            text-decoration: none;
+            margin-left: 12px;
+        }
+
+        .creator-footer a:hover {
+            text-decoration: underline;
+        }
         
         h1 {
             font-size: 28px;
@@ -280,6 +305,13 @@ HTML_TEMPLATE = '''
                 </div>
             </div>
         </div>
+
+        <footer class="creator-footer">
+            Created by <strong>Govathoti Vamsi</strong>
+            <a href="mailto:vamsigovathoti8125@gmail.com">vamsigovathoti8125@gmail.com</a>
+            <a href="https://www.linkedin.com/in/vamsigovathoti8125/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="tel:+918125723070">8125723070</a>
+        </footer>
     </div>
     
     <script>
