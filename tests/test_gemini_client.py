@@ -1,4 +1,4 @@
-from src.gemini_client import answer_resume_question, expand_project_documents, expand_resume_documents, extract_candidate_name, generate_text
+from src.gemini_client import answer_resume_question, expand_project_documents, expand_resume_documents, expand_topic_documents, extract_candidate_name, generate_text
 
 
 def force_offline(monkeypatch):
@@ -133,6 +133,26 @@ def test_heading_question_returns_multiple_relevant_points(monkeypatch):
     assert "captions for videos" in result
     assert "visual alerts" in result
     assert "adjusting media accessibility" in result
+
+
+def test_topic_expansion_finds_any_document_section():
+    first = {"text": "General accessibility information.", "source": "UNIT 4.pdf", "page": 1}
+    requested = {"text": "Designing for Motor Disabilities Members of your user base may have a motor disability.", "source": "UNIT 4.pdf", "page": 17}
+
+    expanded = expand_topic_documents("Designing for Motor Disabilities", [first, requested], [first])
+
+    assert requested in expanded
+
+
+def test_same_line_heading_keeps_first_explanation(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Context: Designing for Motor Disabilities Members of your user base may have a motor disability. "
+        "Many users use assistive technology. Question: Designing for Motor Disabilities"
+    )
+
+    assert "Members of your user base" in result
+    assert "assistive technology" in result
 
 
 def test_resume_experience_answer_uses_matching_evidence_only():

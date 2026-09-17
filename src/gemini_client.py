@@ -109,6 +109,17 @@ def _topic_heading_answer(question: str, sentences: list[str]) -> str | None:
     for index, sentence in enumerate(sentences):
         sentence_words = set(re.findall(r"[a-z0-9]+", sentence.lower()))
         if question_words.issubset(sentence_words) or sentence_words.issubset(question_words):
+            normalized_question = " ".join(sorted(question_words))
+            question_phrase = question.lower().strip().rstrip("?")
+            inline_start = sentence.lower().find(question_phrase)
+            if inline_start >= 0:
+                inline_answer = sentence[inline_start + len(question_phrase):].strip(" :-")
+                if len(inline_answer) > 35:
+                    title = sentence[inline_start:inline_start + len(question_phrase)].strip()
+                    if "best practice" in question_phrase:
+                        return f"{title}: {inline_answer}"
+                    follow_up = [part for part in sentences[index + 1:index + 5] if len(part) > 35]
+                    return " ".join([f"{title}: {inline_answer}", *follow_up[:3]])
             if ":" in sentence:
                 title, inline_answer = sentence.split(":", 1)
                 title_words = set(re.findall(r"[a-z0-9]+", title.lower()))
@@ -201,6 +212,36 @@ def expand_resume_documents(question: str, docs: list[dict], retrieved: list[dic
     for doc in docs:
         if doc.get("source") in sources:
             key = (doc.get("source"), doc.get("page"), doc.get("text", "").strip())
+            if key not in seen:
+                expanded.append(doc)
+                seen.add(key)
+    return expanded
+
+
+def expand_topic_documents(question: str, docs: list[dict], retrieved: list[dict]) -> list[dict]:
+    """Add chunks that contain the specific topic asked about in any document."""
+    stop_words = {
+        "what", "which", "where", "when", "does", "do", "is", "are", "the", "a", "an",
+        "this", "that", "these", "those", "about", "explain", "tell", "me", "please",
+        "for", "and", "of", "to", "in", "on", "with",
+    }
+    terms = [word for word in re.findall(r"[a-z0-9]+", question.lower()) if len(word) >= 4 and word not in stop_words]
+    if len(terms) < 2:
+        return retrieved
+
+    expanded = list(retrieved)
+    seen = {(doc.get("source"), doc.get("page"), doc.get("text", "").strip()) for doc in expanded}
+    for doc in docs:
+        text = doc.get("text", "")
+        normalized_text = re.sub(r"[^a-z0-9]", "", text.lower())
+        text_words = re.findall(r"[a-z0-9]+", text.lower())
+        matched = sum(
+            re.sub(r"[^a-z0-9]", "", term) in normalized_text
+            or any(SequenceMatcher(None, term, word).ratio() >= 0.88 for word in text_words if len(word) >= 5)
+            for term in terms
+        )
+        if matched >= max(2, len(terms) - 1):
+            key = (doc.get("source"), doc.get("page"), text.strip())
             if key not in seen:
                 expanded.append(doc)
                 seen.add(key)
