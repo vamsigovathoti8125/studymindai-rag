@@ -246,7 +246,7 @@ def expand_topic_documents(question: str, docs: list[dict], retrieved: list[dict
             or any(SequenceMatcher(None, term, word).ratio() >= 0.88 for word in text_words if len(word) >= 5)
             for term in terms
         )
-        if matched >= 1:
+        if matched >= max(2, len(terms) - 1):
             matched_sources.add(doc.get("source"))
             if isinstance(doc.get("page"), int):
                 matched_pages.append((doc.get("source"), doc.get("page")))
@@ -278,18 +278,8 @@ def answer_resume_question(question: str, context: str) -> str | None:
             return f"The candidate's name is {candidate_name}."
 
     education_terms = ("education", "degree", "college", "university", "graduat", "passed", "study", "studied")
-    resume_headings = (
-        "career objective",
-        "technical skills",
-        "programming languages",
-        "internships",
-        "projects",
-        "education",
-        "experience",
-    )
-    resume_heading_count = sum(heading in context.lower() for heading in resume_headings)
     has_resume_filename = bool(re.search(r"\[[^\]]*\b(?:resume|cv)\b[^\]]*\]", context, re.IGNORECASE))
-    is_resume = has_resume_filename or resume_heading_count >= 2
+    is_resume = has_resume_filename
     if is_resume and not any(
         term in lowered_question
         for term in ("experience", "projects", "project", "skills", *education_terms)
@@ -349,6 +339,7 @@ def answer_resume_question(question: str, context: str) -> str | None:
         for match in re.finditer(r"(?:19|20)\d{2}\s*(?:[-–—]\s*(?:19|20)\d{2})?", context):
             year = re.sub(r"\s+", " ", match.group(0)).strip()
             if year not in year_ranges:
+                year_ranges.append(year)
                 year_ranges.append(year)
         if year_ranges:
             return "Education: Graduation year " + year_ranges[0]
