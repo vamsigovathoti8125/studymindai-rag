@@ -118,6 +118,23 @@ def test_heading_question_returns_following_explanation(monkeypatch):
     assert "Accessible design grants disabled users" in result
 
 
+def test_heading_question_returns_multiple_relevant_points(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\nDesigning for the Deaf and HOH\n"
+        "Design for the deaf and hard of hearing community becomes more significant as multimedia elements grow.\n"
+        "Include captions for videos and provide transcripts for audio content.\n"
+        "Use visual alerts instead of relying only on sound.\n"
+        "Provide clear controls for adjusting media accessibility.\n\n"
+        "Question: Designing for the Deaf and HOH"
+    )
+
+    assert "captions for videos" in result
+    assert "visual alerts" in result
+    assert "adjusting media accessibility" in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 

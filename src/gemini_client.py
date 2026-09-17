@@ -116,9 +116,9 @@ def _topic_heading_answer(question: str, sentences: list[str]) -> str | None:
                     inline_answer = inline_answer.strip()
                     if len(inline_answer) > 35:
                         return inline_answer
-            follow_up = [part for part in sentences[index + 1:index + 4] if len(part) > 35]
+            follow_up = [part for part in sentences[index + 1:index + 6] if len(part) > 35]
             if follow_up:
-                return " ".join(follow_up[:2])
+                return " ".join(follow_up[:4])
     return None
 
 
