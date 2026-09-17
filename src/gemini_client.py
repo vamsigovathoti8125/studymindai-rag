@@ -102,6 +102,35 @@ def _sentences(text: str) -> list[str]:
     return [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", text) if sentence.strip()]
 
 
+def _ranked_relevant_sentences(question: str, sentences: list[str]) -> list[str]:
+    stop_words = {
+        "what", "which", "where", "when", "does", "do", "is", "are", "the", "a", "an",
+        "this", "that", "these", "those", "about", "explain", "tell", "me", "please",
+    }
+    terms = [word for word in re.findall(r"[a-z0-9]+", question.lower()) if len(word) >= 4 and word not in stop_words]
+    if not terms:
+        return []
+
+    ranked = []
+    for position, sentence in enumerate(sentences):
+        clean_sentence = re.sub(r"\[[^\]]+\]\s*", "", sentence).strip()
+        sentence_lower = clean_sentence.lower()
+        if re.fullmatch(r"(?:what|who|which)\s+(?:is|are|was|were)\s+.+\?", sentence_lower):
+            continue
+        term_matches = sum(term in sentence_lower for term in terms)
+        if not term_matches:
+            continue
+        score = term_matches * 10
+        if re.search(r"\b(?:is|refers to|means|defined as|is the process of)\b", sentence_lower):
+            score += 8
+        if all(term in sentence_lower for term in terms):
+            score += 12
+        ranked.append((score, position, clean_sentence))
+
+    ranked.sort(key=lambda item: (-item[0], item[1]))
+    return [sentence for _, _, sentence in ranked]
+
+
 def expand_project_documents(question: str, docs: list[dict], retrieved: list[dict]) -> list[dict]:
     """Add resume chunks whose named project matches the question."""
     lowered_question = question.lower()
@@ -313,13 +342,12 @@ def _local_text_response(prompt: str) -> str:
     if "summarize" in lowered_prompt or "summary" in lowered_prompt:
         return " ".join(sentences[:5])
 
-    question_words = set(re.findall(r"[a-zA-Z]{4,}", question_match.group(1).lower())) if question_match else set()
-    relevant = [sentence for sentence in sentences if question_words.intersection(
-        set(re.findall(r"[a-zA-Z]{4,}", sentence.lower()))
-    )]
+    question_text = question_match.group(1).strip() if question_match else ""
+    relevant = _ranked_relevant_sentences(question_text, sentences)
     if not relevant:
         return "I couldn't find that information in the uploaded document."
-    answer = re.sub(r"\[[^\]]+\]\s*", "", " ".join(relevant[:3])).strip()
+    is_definition_question = bool(re.match(r"\s*(what|who)\s+(is|are)\b", question_text.lower()))
+    answer = " ".join(relevant[:1] if is_definition_question else relevant[:3]).strip()
     return f"Gemini is unavailable, so here is the closest answer from your notes:\n\n{answer}"
 
 

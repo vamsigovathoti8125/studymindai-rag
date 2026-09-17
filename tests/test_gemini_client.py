@@ -65,6 +65,19 @@ def test_general_document_fallback_answers_from_context(monkeypatch):
     assert "couldn't find" not in result
 
 
+def test_general_definition_prefers_exact_definition_over_noise(monkeypatch):
+    force_offline(monkeypatch)
+    result = generate_text(
+        "Use only the document context.\n\n"
+        "Context:\n[UNIT 4.pdf - p.1] Launch with Accessibility Checks Brands cannot fix what they don't measure. "
+        "What is Accessibility? Accessibility refers to designing digital platforms that can be easily navigated and used by people with diverse abilities.\n\n"
+        "Question: What is accessibility?"
+    )
+
+    assert "Accessibility refers to designing digital platforms" in result
+    assert "Launch with Accessibility Checks" not in result
+
+
 def test_resume_experience_answer_uses_matching_evidence_only():
     context = "[resume.pdf - p.1] GOVATHOTI VAMSI\nExperience AI/ML Intern - Developed an image classification system using Python and OpenCV."
 
